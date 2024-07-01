@@ -8,32 +8,22 @@ def interpolasi_linear(x, y, x_interp):
     return y[i] + (y[i + 1] - y[i]) / (x[i + 1] - x[i]) * (x_interp - x[i])
 
 def interpolasi_kuadratik(x, y, x_interp):
-    # Cari 3 titik terdekat dengan x_interp
     idx = np.argsort(np.abs(x - x_interp))[:3]
     x_dekat = x[idx]
     y_dekat = y[idx]
-
-    # Hitung polinom Lagrange orde 2
     L0 = ((x_interp - x_dekat[1]) * (x_interp - x_dekat[2])) / ((x_dekat[0] - x_dekat[1]) * (x_dekat[0] - x_dekat[2]))
     L1 = ((x_interp - x_dekat[0]) * (x_interp - x_dekat[2])) / ((x_dekat[1] - x_dekat[0]) * (x_dekat[1] - x_dekat[2]))
     L2 = ((x_interp - x_dekat[0]) * (x_interp - x_dekat[1])) / ((x_dekat[2] - x_dekat[0]) * (x_dekat[2] - x_dekat[1]))
-
-    # Hitung nilai interpolasi
     return L0 * y_dekat[0] + L1 * y_dekat[1] + L2 * y_dekat[2]
 
 def interpolasi_kubik(x, y, x_interp):
-    # Find the 4 nearest points to x_interp
     idx = np.argsort(np.abs(x - x_interp))[:4]
     x_dekat = x[idx]
     y_dekat = y[idx]
-
-    # Calculate the cubic Lagrange polynomial coefficients
     a = (x_dekat[1] - x_interp) * (x_dekat[2] - x_interp) * (x_dekat[3] - x_interp) / ((x_dekat[0] - x_dekat[1]) * (x_dekat[0] - x_dekat[2]) * (x_dekat[0] - x_dekat[3]))
     b = (x_dekat[0] - x_interp) * (x_dekat[2] - x_interp) * (x_dekat[3] - x_interp) / ((x_dekat[1] - x_dekat[0]) * (x_dekat[1] - x_dekat[2]) * (x_dekat[1] - x_dekat[3]))
     c = (x_dekat[0] - x_interp) * (x_dekat[1] - x_interp) * (x_dekat[3] - x_interp) / ((x_dekat[2] - x_dekat[0]) * (x_dekat[2] - x_dekat[1]) * (x_dekat[2] - x_dekat[3]))
     d = (x_dekat[0] - x_interp) * (x_dekat[1] - x_interp) * (x_dekat[2] - x_interp) / ((x_dekat[3] - x_dekat[0]) * (x_dekat[3] - x_dekat[1]) * (x_dekat[3] - x_dekat[2]))
-
-    # Calculate the interpolated value
     return a * y_dekat[0] + b * y_dekat[1] + c * y_dekat[2] + d * y_dekat[3]
 
 def interpolasi_lagrange(x, y, x_interp):
@@ -49,27 +39,27 @@ def interpolasi_lagrange(x, y, x_interp):
 
 def gauss_elimination(A, B):
     n = len(B)
-    M = np.hstack([A, B.reshape(-1,1)])
+    M = np.hstack([A, B.reshape(-1, 1)])
     for i in range(n):
-        max_row = np.argmax(abs(M[i:,i])) + i
-        M[[i,max_row]] = M[[max_row,i]]
-        for j in range(i+1, n):
-            ratio = M[j,i] / M[i,i]
-            M[j,i:] -= ratio * M[i,i:]
+        max_row = np.argmax(np.abs(M[i:, i])) + i
+        M[[i, max_row]] = M[[max_row, i]]
+        for j in range(i + 1, n):
+            ratio = M[j, i] / M[i, i]
+            M[j, i:] -= ratio * M[i, i:]
     x = np.zeros(n)
-    for i in range(n-1, -1, -1):
-        x[i] = (M[i,-1] - np.dot(M[i,i+1:n], x[i+1:n])) / M[i,i]
+    for i in range(n - 1, -1, -1):
+        x[i] = (M[i, -1] - np.dot(M[i, i + 1:n], x[i + 1:n])) / M[i, i]
     return x
 
 def gauss_jordan(A, B):
     n = len(B)
-    M = np.hstack([A, B.reshape(-1,1)])
+    M = np.hstack([A, B.reshape(-1, 1)])
     for i in range(n):
-        M[i] = M[i] / M[i,i]
+        M[i] = M[i] / M[i, i]
         for j in range(n):
             if i != j:
-                M[j] -= M[i] * M[j,i]
-    return M[:,-1]
+                M[j] -= M[i] * M[j, i]
+    return M[:, -1]
 
 def hitung_interpolasi(metode, x_data, y_data, x_interp):
     x = np.array(x_data)
@@ -92,74 +82,89 @@ def main():
     st.title("🧮 Kalkulator Metode Numerik")
     st.write("Aplikasi ini membantu Anda dalam melakukan perhitungan interpolasi dan eliminasi menggunakan metode numerik.")
 
-    # Sidebar yang Lebih Rapi
+    # Sidebar yang Lebih Rapi dan Informatif
     with st.sidebar:
-        st.subheader("🧮 Kalkulator Metode Numerik")
+        st.header("🧮 Menu Kalkulator")
         metode = st.selectbox("Pilih Metode:", ["Linear", "Kuadratik", "Kubik", "Lagrange", "Gauss", "Gauss-Jordan"])
-        st.write("___")
 
-    # Input Data yang Dinamis
+        if metode in ["Linear", "Kuadratik", "Kubik", "Lagrange"]:
+            st.subheader("Interpolasi")
+            st.markdown("Masukkan titik data dan nilai x yang ingin diinterpolasi.")
+        else:
+            st.subheader("Eliminasi Gauss")
+            st.markdown("Masukkan matriks koefisien dan konstanta.")
+
+        st.write("___")  # Pemisah visual
+
+    # Input Data yang Dinamis dengan Validasi Input dan Instruksi
     if metode in ["Linear", "Kuadratik", "Kubik", "Lagrange"]:
-        with st.form("input_interpolasi"):
-            num_points = st.number_input("Jumlah Titik Data:", min_value=2, value=2)
-            cols = st.columns(num_points)
+        num_points = st.number_input("Jumlah Titik Data:", min_value=2, value=2)
+
+        with st.expander("Masukkan Titik Data (x, y)"):
             x_data = []
             y_data = []
-            for i, col in enumerate(cols):
-                with col:
-                    x_data.append(st.number_input(f"x{i+1}:"))
-                    y_data.append(st.number_input(f"y{i+1}:"))
-            x_interp = st.number_input("Nilai x yang akan diinterpolasi:")
-            submit = st.form_submit_button("Hitung Interpolasi")
+            for i in range(num_points):
+                col1, col2 = st.columns(2)
+                with col1:
+                    x = st.number_input(f"x{i}:")
+                with col2:
+                    y = st.number_input(f"y{i}:")
+                x_data.append(x)
+                y_data.append(y)
 
-        # Perhitungan dan Visualisasi
+        x_interp = st.number_input("Nilai x yang akan diinterpolasi:")
+
+        submit = st.button("Hitung Interpolasi", key="submit_interpolasi")
+
+                # Perhitungan dan Visualisasi
         if submit:
-            x_data = np.array(x_data, dtype=float)  # Ubah ke float
-            y_data = np.array(y_data, dtype=float)
-            result = hitung_interpolasi(metode, x_data, y_data, x_interp)
-            st.write(f"Hasil Interpolasi ({metode}): {result:.4f}")
+                result = hitung_interpolasi(metode, x_data, y_data, x_interp)
+                st.write(f"Hasil Interpolasi ({metode}): {result:.4f}")
 
-            # Visualisasi (opsional)
-            x_plot = np.linspace(min(x_data), max(x_data), 400)
-            y_plot = [hitung_interpolasi(metode, x_data, y_data, x) for x in x_plot]
+                with st.expander("Visualisasi"):
+                    x_plot = np.linspace(min(x_data), max(x_data), 400)
+                    y_plot = [hitung_interpolasi(metode, x_data, y_data, x) for x in x_plot]
 
-            plt.figure(figsize=(8, 6))
-            plt.plot(x_data, y_data, 'o', label="Titik Data")
-            plt.plot(x_plot, y_plot, label=f"Interpolasi {metode}")
-            plt.plot(x_interp, result, 'ro', label="Hasil Interpolasi")
-            plt.xlabel("x")
-            plt.ylabel("y")
-            plt.title(f"Interpolasi {metode}")
-            plt.legend()
-            st.pyplot(plt)
-
+                    plt.figure(figsize=(8, 6))
+                    plt.plot(x_data, y_data, 'o', label="Titik Data")
+                    plt.plot(x_plot, y_plot, label=f"Interpolasi {metode}")
+                    plt.plot(x_interp, result, 'ro', label="Hasil Interpolasi")
+                    plt.xlabel("x")
+                    plt.ylabel("y")
+                    plt.title(f"Interpolasi {metode}")
+                    plt.legend()
+                    st.pyplot(plt)
     elif metode in ["Gauss", "Gauss-Jordan"]:
-        with st.form("input_eliminasi"):
-            num_eq = st.number_input("Jumlah Persamaan:", min_value=2, value=2)
-            cols = st.columns(num_eq + 1)
+        num_eq = st.number_input("Jumlah Persamaan:", min_value=2, value=2)
+        with st.expander("Masukkan Matriks Koefisien (A) dan Konstanta (B)"):
             A = []
             B = []
             for i in range(num_eq):
                 row_a = []
+                cols = st.columns(num_eq + 1)  # Kolom untuk A dan B
                 for j in range(num_eq):
                     with cols[j]:
-                        row_a.append(st.number_input(f"A[{i+1},{j+1}]:"))
+                        a_ij = st.number_input(f"A[{i+1},{j+1}]:")
+                        row_a.append(a_ij)
+                with cols[-1]:  # Kolom terakhir untuk B
+                    b_i = st.number_input(f"B[{i+1}]:")
+                    B.append(b_i)
                 A.append(row_a)
-                with cols[-1]:
-                    B.append(st.number_input(f"B[{i+1}]:"))
-            A = np.array(A)
-            B = np.array(B)
-            submit = st.form_submit_button("Hitung Eliminasi")
 
-        if submit:
-            if metode == "Gauss":
-                result = gauss_elimination(A, B)
-            elif metode == "Gauss-Jordan":
-                result = gauss_jordan(A, B)
+            submit = st.button("Hitung Eliminasi")
 
-            # Format hasil penyelesaian
-            hasil_str = ", ".join([f"(x{i+1}: {val:.4f})" for i, val in enumerate(result)])
-            st.write(f"Hasil Penyelesaian ({metode}): [{hasil_str}]")
+            # Perhitungan
+            if submit:
+                A = np.array(A)
+                B = np.array(B)
+                if metode == "Gauss":
+                    result = gauss_elimination(A, B)
+                elif metode == "Gauss-Jordan":
+                    result = gauss_jordan(A, B)
+
+                # Format hasil penyelesaian
+                hasil_str = ", ".join([f"x{i+1}: {val:.4f}" for i, val in enumerate(result)])
+                st.write(f"Hasil Penyelesaian ({metode}): [{hasil_str}]")
 
 if __name__ == "__main__":
     main()
